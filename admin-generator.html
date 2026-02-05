@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Code Generator</title>
+    <style>body { font-family: sans-serif; text-align: center; padding: 50px; background: #f0f0f0; }</style>
+</head>
+<body>
+    <h1>Code Generator</h1>
+    <button id="btn" onclick="generate()">Code generieren & in Google speichern</button>
+    <p>Code für Nutzer: <strong id="userCode">-</strong></p>
+    <p id="status"></p>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTF3Sw6uSGnvQSE7JxkFIQgz8nvnQpDAlPjjrqwGgqQ4Hlj7cpUhsM6jj60zIiZFoYvQ/exec"; // HIER EINSETZEN
+
+        async function generate() {
+            const btn = document.getElementById('btn');
+            const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+            btn.disabled = true;
+
+            // Hash erstellen
+            const msgUint8 = new TextEncoder().encode(code);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashed = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ hash: hashed })
+                });
+                document.getElementById('userCode').innerText = code;
+                document.getElementById('status').innerText = "Erfolgreich gespeichert!";
+            } catch (e) {
+                alert("Fehler!");
+            }
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
